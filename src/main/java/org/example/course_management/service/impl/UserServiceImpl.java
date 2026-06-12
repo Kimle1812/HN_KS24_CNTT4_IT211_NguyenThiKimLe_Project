@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse createNewUser(UserCreateRequest request) {
-        if(userRepository.findByUsername(request.getUsername()).isPresent()) throw new RuntimeException("Username conflict.");
+        if(userRepository.findByUsername(request.getUsername()).isPresent()) throw new RuntimeException("Tên đăng nhập đã tồn tại.");
         User user = User.builder()
                 .username(request.getUsername())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse updateUserInfo(Long id, UserCreateRequest request) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
         user.setUsername(request.getUsername());
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPasswordHash(passwordEncoder.encode(request.getPassword()));

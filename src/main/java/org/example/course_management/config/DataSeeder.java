@@ -36,7 +36,7 @@ public class DataSeeder implements CommandLineRunner {
                     .build();
 
             courseRepository.saveAll(Arrays.asList(c1, c2));
-            System.out.println("Sample courses seeded to database.");
+            System.out.println("Dữ liệu mẫu khóa học đã được thêm vào cơ sở dữ liệu.");
         }
 
         if (userRepository.count() == 0) {
@@ -62,7 +62,7 @@ public class DataSeeder implements CommandLineRunner {
                     .build();
 
             userRepository.saveAll(Arrays.asList(admin, lecturer, student));
-            System.out.println("Sample users seeded to database (admin/admin123, lecturer/lecturer123, student/student123).");
+            System.out.println("Dữ liệu mẫu người dùng đã được thêm vào cơ sở dữ liệu (admin/admin123, lecturer/lecturer123, student/student123).");
         }
     }
 }

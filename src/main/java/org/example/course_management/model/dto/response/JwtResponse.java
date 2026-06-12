@@ -3,7 +3,11 @@ package org.example.course_management.model.dto.response;
 
 import lombok.*;
 
-@Getter @Setter @AllArgsConstructor @NoArgsConstructor @Builder // Thêm @Builder ở đây
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class JwtResponse {
     private String accessToken;
     private String refreshToken;

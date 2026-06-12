@@ -39,10 +39,10 @@ public class GradingServiceImpl implements GradingService {
     @Override
     public SubmissionResponse executeGrading(GradeRequest request) {
         Submission submission = submissionRepository.findById(request.getSubmissionId())
-                .orElseThrow(() -> new RuntimeException("Submission record missing."));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài nộp."));
 
         if (submission.getStatus() == StatusEnum.PENDING) {
-            throw new InvalidStateException("Student project is pending. Cannot grade empty slate.");
+            throw new InvalidStateException("Bài tập của sinh viên đang ở trạng thái chờ, không thể chấm điểm.");
         }
 
         submission.setScore(request.getScore());

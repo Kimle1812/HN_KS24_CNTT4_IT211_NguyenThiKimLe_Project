@@ -5,13 +5,13 @@ import lombok.*;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class CourseRequest {
-    @NotBlank(message = "Course code is required")
+    @NotBlank(message = "Mã khóa học không được để trống")
     private String courseCode;
 
-    @NotBlank(message = "Course name is required")
+    @NotBlank(message = "Tên khóa học không được để trống")
     private String courseName;
 
-    @Min(value = 1, message = "Credit must be at least 1")
+    @Min(value = 1, message = "Số tín chỉ phải lớn hơn hoặc bằng 1")
     private Integer credit;
 
     private String description;

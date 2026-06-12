@@ -48,7 +48,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public Course updateCourse(Long id, CourseRequest request) {
-        Course existing = courseRepository.findById(id).orElseThrow(() -> new RuntimeException("Course not found"));
+        Course existing = courseRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học."));
         existing.setCourseCode(request.getCourseCode());
         existing.setCourseName(request.getCourseName());
         existing.setCredit(request.getCredit());

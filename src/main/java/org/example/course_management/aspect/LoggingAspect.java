@@ -20,7 +20,7 @@ public class LoggingAspect {
         Object capturedPayload = joinPoint.proceed();
 
         long totalDeltaTime = System.currentTimeMillis() - markStart;
-        logger.info("[METRIC LOG] Traceable element: {} executed in -> {} ms",
+        logger.info("[ĐO LƯỜNG] Phần tử: {} thực thi trong -> {} ms",
                 joinPoint.getSignature().toShortString(), totalDeltaTime);
 
         return capturedPayload;

@@ -17,12 +17,12 @@ public class CloudinaryServiceImpl implements CloudStorageService {
 
     @Override
     public String uploadFile(MultipartFile file) {
-        if(file.getSize() > 15 * 1024 * 1024) throw new RuntimeException("File size limit cap exceeded (15MB).");
+        if(file.getSize() > 15 * 1024 * 1024) throw new RuntimeException("Kích thước tệp vượt quá giới hạn (15MB).");
         try {
             Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), Map.of());
             return uploadResult.get("secure_url").toString();
         } catch (IOException e) {
-            throw new RuntimeException("Cloud synchronization fault: " + e.getMessage());
+            throw new RuntimeException("Lỗi đồng bộ Cloudinary: " + e.getMessage());
         }
     }
 }

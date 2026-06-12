@@ -33,7 +33,6 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        // Sử dụng hasAnyAuthority và bọc hậu tố /** để đảm bảo áp dụng cho mọi đường dẫn con
                         .requestMatchers("/api/v1/admin/**").hasAnyAuthority("ADMIN", "ROLE_ADMIN")
                         .requestMatchers("/api/v1/lecturer/**").hasAnyAuthority("LECTURER", "ROLE_LECTURER")
                         .requestMatchers("/api/v1/student/**").hasAnyAuthority("STUDENT", "ROLE_STUDENT")

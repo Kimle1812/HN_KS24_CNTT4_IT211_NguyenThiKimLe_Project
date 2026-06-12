@@ -3,7 +3,10 @@ package org.example.course_management.model.dto.request;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserCreateRequest {
     @NotBlank(message = "Tên đăng nhập không được để trống")
     @Size(min = 4, max = 50, message = "Tên đăng nhập phải từ 4 đến 50 ký tự")
