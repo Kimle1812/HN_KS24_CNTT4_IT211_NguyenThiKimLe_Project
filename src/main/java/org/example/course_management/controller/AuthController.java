@@ -24,7 +24,8 @@ public class AuthController {
     private final AuthService authService;
 
     //{ "username": "admin_new", "password": "admin123" }
-    //{ "username": "student01", "password": "student123" }
+    //{ "username": "student01", "password": "student456" }
+    //{ "username": "lecturer01", "password": "lecturer123" }
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResponse.success(authService.authenticate(request), "Đăng nhập thành công."));
