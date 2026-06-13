@@ -1,0 +1,245 @@
+{
+  "info": {
+    "name": "Course Management - Submission Tests",
+    "description": "Test collection cho chức năng nộp bài tập theo assignmentName (không trùng, nhiều bài tập/khóa học)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login as student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('token', jsonData.data.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"student\",\n  \"password\": \"student123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enroll",
+      "item": [
+        {
+          "name": "Enroll in JAVA01",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"JAVA01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/courses/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "courses", "enroll"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Submissions",
+      "item": [
+        {
+          "name": "Submit BT1 - first time (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(pm.response.json().success).to.be.true);",
+                  "pm.test('Message matches', () => pm.expect(pm.response.json().message).to.eql('Nộp bài tập thành công.'));",
+                  "pm.test('Has assignmentName', () => pm.expect(pm.response.json().data.assignmentName).to.eql('Bài tập 1'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"JAVA01\",\n  \"assignmentName\": \"Bài tập 1\",\n  \"repoUrl\": \"https://github.com/student/java01-bt1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "Submit BT1 again (should FAIL - duplicate)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(pm.response.json().success).to.be.false);",
+                  "pm.test('Error message mentions trùng', () => pm.expect(pm.response.json().message).to.include('đã nộp'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"JAVA01\",\n  \"assignmentName\": \"Bài tập 1\",\n  \"repoUrl\": \"https://github.com/student/java01-bt1-v2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "Submit BT2 - different assignment (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(pm.response.json().success).to.be.true);",
+                  "pm.test('Has assignmentName', () => pm.expect(pm.response.json().data.assignmentName).to.eql('Bài tập 2'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"JAVA01\",\n  \"assignmentName\": \"Bài tập 2\",\n  \"repoUrl\": \"https://github.com/student/java01-bt2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "Submit BT1 for another course (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(pm.response.json().success).to.be.true);",
+                  "pm.test('Has assignmentName', () => pm.expect(pm.response.json().data.assignmentName).to.eql('Bài tập 1'));",
+                  "pm.test('CourseCode matches', () => pm.expect(pm.response.json().data.courseCode).to.eql('WEB02'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"WEB02\",\n  \"assignmentName\": \"Bài tập 1\",\n  \"repoUrl\": \"https://github.com/student/web02-bt1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "Submit empty assignmentName (should FAIL - validation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(pm.response.json().success).to.be.false);",
+                  "pm.test('Error message mentions tên bài tập', () => pm.expect(pm.response.json().message).to.include('Tên bài tập'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"JAVA01\",\n  \"assignmentName\": \"\",\n  \"repoUrl\": \"https://github.com/student/test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

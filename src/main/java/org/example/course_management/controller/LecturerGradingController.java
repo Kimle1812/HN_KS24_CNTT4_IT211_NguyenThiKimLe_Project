@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/lecturer")
 @RequiredArgsConstructor
@@ -18,6 +20,12 @@ public class LecturerGradingController {
 
     private final GradingService gradingService;
     private final CloudStorageService storageService;
+
+    @GetMapping("/submissions")
+    public ResponseEntity<ApiResponse<List<SubmissionResponse>>> listAllSubmissions() {
+        List<SubmissionResponse> submissions = gradingService.fetchAllSubmissions();
+        return ResponseEntity.ok(ApiResponse.success(submissions, "Danh sách tất cả bài nộp."));
+    }
 
     @PostMapping("/grades")
     public ResponseEntity<ApiResponse<SubmissionResponse>> recordGrade(@Valid @RequestBody GradeRequest request) {

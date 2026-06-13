@@ -1,6 +1,7 @@
 package org.example.course_management.model.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,11 @@ import lombok.Setter;
 public class SubmissionRequest {
 
     @NotBlank(message = "Mã khóa học không được để trống")
+    @Size(min = 5, message = "Mã khóa học phải có ít nhất 5 ký tự")
     private String courseCode;
+
+    @NotBlank(message = "Tên bài tập không được để trống")
+    private String assignmentName;
 
     @NotBlank(message = "Link GitHub không được để trống")
     private String repoUrl;

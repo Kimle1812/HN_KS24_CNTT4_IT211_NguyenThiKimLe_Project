@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "submissions")
+@Table(name = "submissions", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"student_id", "course_id", "assignment_name"})
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,6 +24,9 @@ public class Submission {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
+
+    @Column(name = "assignment_name", nullable = false, length = 100)
+    private String assignmentName;
 
     @Column(nullable = false, length = 500)
     private String reportUrl;

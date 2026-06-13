@@ -13,6 +13,8 @@ import org.example.course_management.service.GradingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class GradingServiceImpl implements GradingService {
@@ -23,16 +25,25 @@ public class GradingServiceImpl implements GradingService {
     private final SubmissionMapper submissionMapper;
 
     @Override
-    public SubmissionResponse submitRepo(String username, String courseCode, String githubLink) {
-        User student = userRepository.findByUsername(username).orElseThrow();
-        Course course = courseRepository.findByCourseCode(courseCode).orElseThrow();
+    public SubmissionResponse submitRepo(String username, String courseCode, String assignmentName, String githubLink) {
+        User student = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên."));
+        Course course = courseRepository.findByCourseCode(courseCode)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học."));
 
-        Submission submission = submissionRepository.findByStudentIdAndCourseId(student.getId(), course.getId())
-                .orElse(Submission.builder().student(student).course(course).status(StatusEnum.PENDING).build());
+        submissionRepository.findByStudentIdAndCourseIdAndAssignmentName(student.getId(), course.getId(), assignmentName)
+                .ifPresent(submission -> {
+                    throw new InvalidStateException("Bạn đã nộp bài tập '" + assignmentName + "' cho khóa học này rồi.");
+                });
 
-        // Tuân thủ sơ đồ chuyển dịch vòng đời trạng thái (PENDING/GRADED -> SUBMITTED)
-        submission.setReportUrl(githubLink);
-        submission.setStatus(StatusEnum.SUBMITTED);
+        Submission submission = Submission.builder()
+                .student(student)
+                .course(course)
+                .assignmentName(assignmentName)
+                .reportUrl(githubLink)
+                .status(StatusEnum.SUBMITTED)
+                .build();
+
         return submissionMapper.toSubmissionResponse(submissionRepository.save(submission));
     }
 
@@ -47,7 +58,7 @@ public class GradingServiceImpl implements GradingService {
 
         submission.setScore(request.getScore());
         submission.setFeedback(request.getFeedback());
-        submission.setStatus(StatusEnum.GRADED); // Trạng thái chuyển dịch vòng đời cuối cùng: GRADED
+        submission.setStatus(StatusEnum.GRADED);
         return submissionMapper.toSubmissionResponse(submissionRepository.save(submission));
     }
 
@@ -56,5 +67,21 @@ public class GradingServiceImpl implements GradingService {
         Course course = courseRepository.findByCourseCode(courseCode).orElseThrow();
         course.setLectureMaterialsUrl(url);
         courseRepository.save(course);
+    }
+
+    @Override
+    public List<SubmissionResponse> fetchAllSubmissions() {
+        List<Submission> submissions = submissionRepository.findAll();
+        return submissions.stream()
+                .map(submissionMapper::toSubmissionResponse)
+                .toList();
+    }
+
+    @Override
+    public List<SubmissionResponse> fetchSubmissionsByStudent(String username) {
+        List<Submission> submissions = submissionRepository.findByStudent_Username(username);
+        return submissions.stream()
+                .map(submissionMapper::toSubmissionResponse)
+                .toList();
     }
 }

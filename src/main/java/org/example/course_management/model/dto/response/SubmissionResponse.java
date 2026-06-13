@@ -12,6 +12,7 @@ public class SubmissionResponse {
     private Long id;
     private String studentName;
     private String courseCode;
+    private String assignmentName;
     private String reportUrl;
     private Double score;
     private String feedback;

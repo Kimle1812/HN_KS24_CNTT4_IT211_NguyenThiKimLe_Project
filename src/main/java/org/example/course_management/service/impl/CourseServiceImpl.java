@@ -1,5 +1,6 @@
 package org.example.course_management.service.impl;
 
+import org.example.course_management.exception.InvalidStateException;
 import org.example.course_management.model.dto.request.CourseRequest;
 import org.example.course_management.model.entity.Course;
 import org.example.course_management.model.entity.User;
@@ -34,9 +35,14 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public void enrollStudent(String username, String courseCode) {
-        User student = userRepository.findByUsername(username).orElseThrow();
-        Course course = courseRepository.findByCourseCode(courseCode).orElseThrow();
+        User student = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên."));
+        Course course = courseRepository.findByCourseCode(courseCode)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học."));
         if (course.getStudents() == null) course.setStudents(new HashSet<>());
+        if (course.getStudents().contains(student)) {
+            throw new InvalidStateException("Sinh viên đã đăng ký khóa học này rồi.");
+        }
         course.getStudents().add(student);
         courseRepository.save(course);
     }

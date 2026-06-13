@@ -1,0 +1,1429 @@
+{
+  "info": {
+    "name": "Course Management - Full Test Collection",
+    "description": "Test collection cho các FR: FR-02 (Refresh Token), FR-07 (Nộp bài tập), FR-08 (Chấm điểm), FR-09 (Tải tài liệu), FR-10 (Đổi mật khẩu)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "studentToken",
+      "value": ""
+    },
+    {
+      "key": "lecturerToken",
+      "value": ""
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "submissionId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "FR-02: Xoay vòng Token (Refresh Token)",
+      "item": [
+        {
+          "name": "FR-02-TC01: Login to get tokens (setup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Message is Đăng nhập thành công', () => pm.expect(jsonData.message).to.eql('Đăng nhập thành công.'));",
+                  "",
+                  "pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);",
+                  "",
+                  "pm.test('Has accessToken', () => pm.expect(jsonData.data.accessToken).to.not.be.empty);",
+                  "pm.test('Has refreshToken', () => pm.expect(jsonData.data.refreshToken).to.not.be.empty);",
+                  "pm.test('tokenType is Bearer', () => pm.expect(jsonData.data.tokenType).to.eql('Bearer'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"student\",\n  \"password\": \"student123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "FR-02-TC02: Refresh token valid (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Message is Làm mới token thành công', () => pm.expect(jsonData.message).to.eql('Làm mới token thành công.'));",
+                  "",
+                  "pm.test('Has new accessToken', () => pm.expect(jsonData.data.accessToken).to.not.be.empty);",
+                  "pm.test('Has refreshToken', () => pm.expect(jsonData.data.refreshToken).to.not.be.empty);",
+                  "",
+                  "pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh?refreshToken={{refreshToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "refresh"],
+              "query": [
+                {
+                  "key": "refreshToken",
+                  "value": "{{refreshToken}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "FR-02-TC03: Refresh with invalid token (should FAIL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error message mentions hết hạn', () => pm.expect(jsonData.message).to.include('hết hạn'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh?refreshToken=invalid_refresh_token_here",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "refresh"],
+              "query": [
+                {
+                  "key": "refreshToken",
+                  "value": "invalid_refresh_token_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "FR-02-TC04: Refresh with empty token (should FAIL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 401 or 400', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400, 401]);",
+                  "});",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh?refreshToken=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "refresh"],
+              "query": [
+                {
+                  "key": "refreshToken",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "FR-02-TC05: Use old accessToken after refresh (should still work until expiry)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Vẫn dùng được token cũ trong thời hạn', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "courses"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "FR-07: Nộp bài tập (Gửi link GitHub) – Student",
+      "item": [
+        {
+          "name": "FR-07-TC01: Login as student (setup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Login success', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.collectionVariables.set('studentToken', jsonData.data.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"student\",\n  \"password\": \"student123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "FR-07-TC02: Enroll in JAVA01 (setup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Message is Đăng ký khóa học thành công', () => pm.expect(jsonData.message).to.eql('Đăng ký khóa học thành công.'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"JAVA01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/courses/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "courses", "enroll"]
+            }
+          }
+        },
+        {
+          "name": "FR-07-TC03: Enroll in WEB02 (setup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Message is Đăng ký khóa học thành công', () => pm.expect(jsonData.message).to.eql('Đăng ký khóa học thành công.'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"WEB02\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/courses/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "courses", "enroll"]
+            }
+          }
+        },
+        {
+          "name": "FR-07-TC04: Submit BT1 first time (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Message is Nộp bài tập thành công', () => pm.expect(jsonData.message).to.eql('Nộp bài tập thành công.'));",
+                  "pm.test('Has assignmentName', () => pm.expect(jsonData.data.assignmentName).to.eql('Bài tập 1'));",
+                  "pm.test('Has studentName', () => pm.expect(jsonData.data.studentName).to.eql('student'));",
+                  "pm.test('Has courseCode', () => pm.expect(jsonData.data.courseCode).to.eql('JAVA01'));",
+                  "pm.test('Has reportUrl', () => pm.expect(jsonData.data.reportUrl).to.not.be.empty);",
+                  "pm.test('Status is SUBMITTED', () => pm.expect(jsonData.data.status).to.eql('SUBMITTED'));",
+                  "pm.test('Score is null', () => pm.expect(jsonData.data.score).to.be.null);",
+                  "",
+                  "pm.collectionVariables.set('submissionId', jsonData.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"JAVA01\",\n  \"assignmentName\": \"Bài tập 1\",\n  \"repoUrl\": \"https://github.com/student/java01-bt1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "FR-07-TC05: Submit BT1 again (should FAIL - duplicate)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error message mentions đã nộp', () => pm.expect(jsonData.message).to.include('đã nộp'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"JAVA01\",\n  \"assignmentName\": \"Bài tập 1\",\n  \"repoUrl\": \"https://github.com/student/java01-bt1-v2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "FR-07-TC06: Submit BT2 different assignment (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Has assignmentName', () => pm.expect(jsonData.data.assignmentName).to.eql('Bài tập 2'));",
+                  "pm.test('courseCode is JAVA01', () => pm.expect(jsonData.data.courseCode).to.eql('JAVA01'));",
+                  "pm.test('Status is SUBMITTED', () => pm.expect(jsonData.data.status).to.eql('SUBMITTED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"JAVA01\",\n  \"assignmentName\": \"Bài tập 2\",\n  \"repoUrl\": \"https://github.com/student/java01-bt2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "FR-07-TC07: Submit BT1 for another course WEB02 (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Has assignmentName', () => pm.expect(jsonData.data.assignmentName).to.eql('Bài tập 1'));",
+                  "pm.test('courseCode is WEB02', () => pm.expect(jsonData.data.courseCode).to.eql('WEB02'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"WEB02\",\n  \"assignmentName\": \"Bài tập 1\",\n  \"repoUrl\": \"https://github.com/student/web02-bt1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "FR-07-TC08: Submit empty assignmentName (should FAIL - validation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error message mentions Tên bài tập', () => pm.expect(jsonData.message).to.include('Tên bài tập'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"JAVA01\",\n  \"assignmentName\": \"\",\n  \"repoUrl\": \"https://github.com/student/test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "FR-07-TC09: Submit empty courseCode (should FAIL - validation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error message mentions Mã khóa học', () => pm.expect(jsonData.message).to.include('Mã khóa học'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"\",\n  \"assignmentName\": \"Bài tập 3\",\n  \"repoUrl\": \"https://github.com/student/test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "FR-07-TC10: Submit empty repoUrl (should FAIL - validation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error message mentions Link GitHub', () => pm.expect(jsonData.message).to.include('Link GitHub'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"JAVA01\",\n  \"assignmentName\": \"Bài tập 3\",\n  \"repoUrl\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "FR-07-TC11: Submit with 2-char courseCode (should FAIL - min length)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error message mentions ít nhất 5 ký tự', () => pm.expect(jsonData.message).to.include('5 ký tự'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"AB\",\n  \"assignmentName\": \"Bài tập 4\",\n  \"repoUrl\": \"https://github.com/student/test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "FR-07-TC12: View my submissions as student (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Message is Danh sách bài nộp của tôi', () => pm.expect(jsonData.message).to.eql('Danh sách bài nộp của tôi.'));",
+                  "pm.test('Data is an array', () => pm.expect(Array.isArray(jsonData.data)).to.be.true);",
+                  "pm.test('Has at least 3 submissions', () => pm.expect(jsonData.data.length).to.be.at.least(3));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/student/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "student", "submissions"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "FR-08: Chấm điểm & Ghi chú nhận xét – Lecturer",
+      "item": [
+        {
+          "name": "FR-08-TC01: Login as lecturer (setup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Login success', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.collectionVariables.set('lecturerToken', jsonData.data.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"lecturer\",\n  \"password\": \"lecturer123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "FR-08-TC02: Grade submission with valid data (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Message is Chấm điểm đồ án thành công', () => pm.expect(jsonData.message).to.eql('Chấm điểm đồ án thành công.'));",
+                  "pm.test('Score is 85', () => pm.expect(jsonData.data.score).to.eql(85.0));",
+                  "pm.test('Feedback matches', () => pm.expect(jsonData.data.feedback).to.eql('Bài làm tốt, cần cải thiện phần kiến trúc.'));",
+                  "pm.test('Status is GRADED', () => pm.expect(jsonData.data.status).to.eql('GRADED'));",
+                  "pm.test('Has studentName', () => pm.expect(jsonData.data.studentName).to.not.be.empty);",
+                  "pm.test('Has courseCode', () => pm.expect(jsonData.data.courseCode).to.not.be.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submissionId\": {{submissionId}},\n  \"score\": 85,\n  \"feedback\": \"Bài làm tốt, cần cải thiện phần kiến trúc.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/grades",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "grades"]
+            }
+          }
+        },
+        {
+          "name": "FR-08-TC03: Grade with score > 100 (should FAIL - validation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error mentions vượt quá 100', () => pm.expect(jsonData.message).to.include('100'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submissionId\": {{submissionId}},\n  \"score\": 150,\n  \"feedback\": \"Test score > 100\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/grades",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "grades"]
+            }
+          }
+        },
+        {
+          "name": "FR-08-TC04: Grade with score < 0 (should FAIL - validation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error mentions lớn hơn', () => pm.expect(jsonData.message).to.include('lớn hơn'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submissionId\": {{submissionId}},\n  \"score\": -10,\n  \"feedback\": \"Test score < 0\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/grades",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "grades"]
+            }
+          }
+        },
+        {
+          "name": "FR-08-TC05: Grade non-existent submission (should FAIL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 500', () => pm.response.to.have.status(500));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error mentions không tìm thấy bài nộp', () => pm.expect(jsonData.message).to.include('bài nộp'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submissionId\": 99999,\n  \"score\": 75,\n  \"feedback\": \"Bài nộp không tồn tại\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/grades",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "grades"]
+            }
+          }
+        },
+        {
+          "name": "FR-08-TC06: Grade without auth (should FAIL - 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submissionId\": {{submissionId}},\n  \"score\": 75,\n  \"feedback\": \"Không có token\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/grades",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "grades"]
+            }
+          }
+        },
+        {
+          "name": "FR-08-TC07: Grade with student token (should FAIL - 403 Forbidden)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submissionId\": {{submissionId}},\n  \"score\": 75,\n  \"feedback\": \"Dùng token student\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/grades",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "grades"]
+            }
+          }
+        },
+        {
+          "name": "FR-08-TC08: Grade with null submissionId (should FAIL - validation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error mentions Mã bài nộp', () => pm.expect(jsonData.message).to.include('Mã bài nộp'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": 75,\n  \"feedback\": \"Thiếu submissionId\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/grades",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "grades"]
+            }
+          }
+        },
+        {
+          "name": "FR-08-TC09: View all submissions as lecturer (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Message is Danh sách tất cả bài nộp', () => pm.expect(jsonData.message).to.eql('Danh sách tất cả bài nộp.'));",
+                  "pm.test('Data is an array', () => pm.expect(Array.isArray(jsonData.data)).to.be.true);",
+                  "pm.test('Has submissions', () => pm.expect(jsonData.data.length).to.be.at.least(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/submissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "submissions"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "FR-09: Tải lên Tài liệu bài giảng – Lecturer",
+      "item": [
+        {
+          "name": "FR-09-TC01: Login as lecturer (setup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Login success', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.collectionVariables.set('lecturerToken', jsonData.data.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"lecturer\",\n  \"password\": \"lecturer123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "FR-09-TC02: Upload materials for JAVA01 (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Message is Tải lên tài liệu bài giảng thành công', () => pm.expect(jsonData.message).to.eql('Tải lên tài liệu bài giảng thành công.'));",
+                  "pm.test('Has URL data', () => pm.expect(jsonData.data).to.not.be.empty);",
+                  "pm.test('URL is from Cloudinary', () => pm.expect(jsonData.data).to.include('cloudinary'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "courseCode",
+                  "value": "JAVA01",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Chọn file tài liệu (PDF, DOC, ZIP...) để upload"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/materials",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "materials"]
+            }
+          }
+        },
+        {
+          "name": "FR-09-TC03: Upload materials with invalid courseCode (should FAIL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 500', () => pm.response.to.have.status(500));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{lecturerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "courseCode",
+                  "value": "INVALID_COURSE",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Chọn file để upload"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/materials",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "materials"]
+            }
+          }
+        },
+        {
+          "name": "FR-09-TC04: Upload without auth (should FAIL - 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "courseCode",
+                  "value": "JAVA01",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Chọn file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/materials",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "materials"]
+            }
+          }
+        },
+        {
+          "name": "FR-09-TC05: Upload with student token (should FAIL - 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "courseCode",
+                  "value": "JAVA01",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Chọn file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lecturer/materials",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "lecturer", "materials"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "FR-10: Đổi mật khẩu",
+      "item": [
+        {
+          "name": "FR-10-TC01: Login as student (setup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Login success', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.collectionVariables.set('studentToken', jsonData.data.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"student\",\n  \"password\": \"student123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "FR-10-TC02: Change password successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.test('Message is Đổi mật khẩu thành công', () => pm.expect(jsonData.message).to.eql('Đổi mật khẩu thành công.'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"student123\",\n  \"newPassword\": \"newpassword456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "password"]
+            }
+          }
+        },
+        {
+          "name": "FR-10-TC03: Login with new password (should succeed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Login with new password success', () => pm.expect(jsonData.success).to.be.true);",
+                  "pm.collectionVariables.set('studentToken', jsonData.data.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"student\",\n  \"password\": \"newpassword456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "FR-10-TC04: Login with old password (should FAIL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error mentions mật khẩu không chính xác', () => pm.expect(jsonData.message).to.include('mật khẩu'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"student\",\n  \"password\": \"student123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "FR-10-TC05: Change password with wrong old password (should FAIL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error mentions mật khẩu cũ không chính xác', () => pm.expect(jsonData.message).to.include('Mật khẩu cũ'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"wrongpassword123\",\n  \"newPassword\": \"anothernew456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "password"]
+            }
+          }
+        },
+        {
+          "name": "FR-10-TC06: Change password with empty oldPassword (should FAIL - validation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error mentions Mật khẩu cũ', () => pm.expect(jsonData.message).to.include('Mật khẩu cũ'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"\",\n  \"newPassword\": \"newpassword789\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "password"]
+            }
+          }
+        },
+        {
+          "name": "FR-10-TC07: Change password with empty newPassword (should FAIL - validation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Success false', () => pm.expect(jsonData.success).to.be.false);",
+                  "pm.test('Error mentions Mật khẩu mới', () => pm.expect(jsonData.message).to.include('Mật khẩu mới'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"newpassword456\",\n  \"newPassword\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "password"]
+            }
+          }
+        },
+        {
+          "name": "FR-10-TC08: Change password without auth (should FAIL - 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"newpassword456\",\n  \"newPassword\": \"anothernew789\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "password"]
+            }
+          }
+        },
+        {
+          "name": "FR-10-TC09: Change password back to original (cleanup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success true', () => pm.expect(jsonData.success).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"newpassword456\",\n  \"newPassword\": \"student123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "password"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

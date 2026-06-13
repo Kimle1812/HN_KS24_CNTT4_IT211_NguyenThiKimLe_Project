@@ -5,7 +5,6 @@ import org.example.course_management.model.dto.request.SubmissionRequest;
 import org.example.course_management.model.dto.response.ApiResponse;
 import org.example.course_management.model.dto.response.SubmissionResponse;
 import org.example.course_management.model.entity.Course;
-import java.util.List;
 import org.example.course_management.service.CourseService;
 import org.example.course_management.service.GradingService;
 import jakarta.validation.Valid;
@@ -13,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/student")
@@ -36,10 +37,17 @@ public class StudentSubmissionController {
         return ResponseEntity.ok(ApiResponse.success(null, "Đăng ký khóa học thành công."));
     }
 
+    @GetMapping("/submissions")
+    public ResponseEntity<ApiResponse<List<SubmissionResponse>>> listMySubmissions() {
+        String user = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<SubmissionResponse> submissions = gradingService.fetchSubmissionsByStudent(user);
+        return ResponseEntity.ok(ApiResponse.success(submissions, "Danh sách bài nộp của tôi."));
+    }
+
     @PostMapping("/submissions")
     public ResponseEntity<ApiResponse<SubmissionResponse>> handInProject(@Valid @RequestBody SubmissionRequest request) {
         String user = SecurityContextHolder.getContext().getAuthentication().getName();
-        SubmissionResponse res = gradingService.submitRepo(user, request.getCourseCode(), request.getRepoUrl());
+        SubmissionResponse res = gradingService.submitRepo(user, request.getCourseCode(), request.getAssignmentName(), request.getRepoUrl());
         return ResponseEntity.ok(ApiResponse.success(res, "Nộp bài tập thành công."));
     }
 }
