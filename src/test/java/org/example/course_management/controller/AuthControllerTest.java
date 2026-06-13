@@ -56,7 +56,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Đăng nhập thành công."))
                 .andExpect(jsonPath("$.data.accessToken").value("mockAccessToken"));
     }
@@ -69,7 +69,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidLoginRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("error")); // Hoặc kiểm tra message cụ thể nếu có
+                .andExpect(jsonPath("$.success").value(false));
     }
 
     @Test
@@ -88,7 +88,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated()) // HttpStatus.CREATED
-                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Đăng ký tài khoản thành công."))
                 .andExpect(jsonPath("$.data.username").value("newuser"));
     }
@@ -102,7 +102,25 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRegisterRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("error"));
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void refresh_ValidRefreshToken_ReturnsJwtResponse() throws Exception {
+        String refreshToken = "validRefreshToken";
+        JwtResponse jwtResponse = JwtResponse.builder()
+                .accessToken("newAccessToken")
+                .refreshToken(refreshToken)
+                .build();
+
+        when(authService.refresh(refreshToken)).thenReturn(jwtResponse);
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .param("refreshToken", refreshToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Làm mới token thành công."))
+                .andExpect(jsonPath("$.data.accessToken").value("newAccessToken"));
     }
 
 }
